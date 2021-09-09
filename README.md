@@ -9,6 +9,8 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the HD44780
 
 * I2C connection at up to ~100kHz
 * Backlight control
+* Set cursor visibility mode (block/underscore/blinking/no blinking)
+* Set display visibility mode (independent of display RAM contents)
 
 ## Requirements
 
@@ -34,6 +36,6 @@ P2/SPIN2:
 
 ## TODO
 
-- [ ] add support for controlling blinking, cursor control, display visibility
+- [x] add support for controlling blinking, cursor control, display visibility
 - [ ] add support for custom characters
 - [ ] add support for LCDs with other interface types (UART, SPI, Parallel)

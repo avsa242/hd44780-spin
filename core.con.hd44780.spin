@@ -26,15 +26,16 @@ CON
         DECR        = 0 << ID
 
     DISPONOFF       = $08                       ' .
+    DISPONOFF_MASK  = $07
         DONOFF      = 2
         CRS         = 1
         BLINK       = 0
         DISPON      = 1 << DONOFF
-        DISPOFF     = 0 << DONOFF
+        DISPOFF     = DISPON ^ DISPONOFF_MASK
         CRSON       = 1 << CRS
-        CRSOFF      = 0 << CRS
+        CRSOFF      = CRSON ^ DISPONOFF_MASK
         CRSBLINK    = 1
-        CRSNOBLINK  = 0
+        CRSNOBLINK  = CRSBLINK ^ DISPONOFF_MASK
 
     CRSDISPSHFT     = $10                       ' .
         SC          = 3

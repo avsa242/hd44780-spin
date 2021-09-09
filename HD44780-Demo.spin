@@ -40,6 +40,7 @@ PUB Main{}
     setup{}
     lcd.reset{}
 
+    lcd.enablebacklight(1)
     lcd.str(string("Testing 1 2 3"))
     time.sleep(2)
     lcd.clear{}

@@ -12,9 +12,9 @@
 
 CON
 
-    DEF_SCL           = 28
-    DEF_SDA           = 29
-    DEF_HZ            = 100_000
+    DEF_SCL     = 28
+    DEF_SDA     = 29
+    DEF_HZ      = 100_000
 
 ' HD44780 control signals
     BL          = 1 << 3                        ' backlight
@@ -25,6 +25,7 @@ CON
 VAR
 
     byte _disp_ctrl                             ' disp. control state
+    byte _disponoff
 
 OBJ
 
@@ -67,6 +68,43 @@ PUB Char(ch)
 PUB Clear{}
 ' Clear display contents, and set cursor position to 0, 0
     wr_cmd(core#CLEAR)
+
+PUB CursorMode(mode): curr_mode
+' Set cursor mode
+'       0: No cursor
+'       1: Block, blinking
+'       2: Underscore, no blinking
+'       3: Underscore, block blinking
+'   Any other value returns the current setting
+    case mode
+        0:
+            _disponoff := (_disponoff & core#CRSOFF & core#CRSNOBLINK)
+        1:
+            _disponoff &= core#CRSOFF
+            _disponoff |= core#CRSBLINK
+        2:
+            _disponoff |= core#CRSON
+            _disponoff &= core#CRSNOBLINK
+        3:
+            _disponoff |= core#CRSON | core#CRSBLINK
+        other:
+            return (_disponoff & %11)           ' ret both C and B bits
+
+    wr_cmd(core#DISPONOFF | _disponoff)
+
+PUB DisplayVisibility(mode): curr_mode
+' Set display visibility
+'   OFF (0): display off (display RAM contents unaffected)
+'   ON (1): display on
+    case mode
+        0:
+            _disponoff &= core#DISPOFF
+        1:
+            _disponoff |= core#DISPON
+        other:
+            return ((_disponoff >> core#DONOFF) & 1)
+
+    wr_cmd(core#DISPONOFF | _disponoff)
 
 PUB EnableBacklight(s)
 ' Enable backlight, if equipped
