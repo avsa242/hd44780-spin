@@ -68,6 +68,7 @@ PUB Char(ch)
 PUB Clear{}
 ' Clear display contents, and set cursor position to 0, 0
     wr_cmd(core#CLEAR)
+    time.msleep(5)
 
 PUB CursorMode(mode): curr_mode
 ' Set cursor mode
