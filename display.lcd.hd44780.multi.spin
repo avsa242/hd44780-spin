@@ -1,8 +1,8 @@
 {
     --------------------------------------------
-    Filename: display.lcd.hd44780.i2c.spin
-    Author:
-    Description:
+    Filename: display.lcd.hd44780.multi.spin
+    Author: Jesse Burt
+    Description: Driver for HD44780 alphanumeric LCDs
     Copyright (c) 2021
     Started Sep 06, 2021
     Updated Sep 09, 2021
@@ -12,6 +12,7 @@
 
 CON
 
+' I2C defaults
     DEF_SCL     = 28
     DEF_SDA     = 29
     DEF_HZ      = 100_000
@@ -118,6 +119,10 @@ PUB EnableBacklight(s)
     wr_nib(%0000)                               '   and send a dummy nibble,
                                                 '   just for the backlight bit
     _disp_ctrl &= !RW                           ' set LCD back to WRITE
+
+PUB Position(x, y)
+' Set cursor position
+    wr_cmd(core#DDRAM_ADDR | ((y * $40) + x))
 
 PUB Reset{}
 ' Reset display
