@@ -7,16 +7,18 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the HD44780
 
 ## Salient Features
 
-* I2C connection at up to ~100kHz
+* I2C connection at ~30kHz (P1: SPIN I2C), 100kHz (P1: PASM I2C, P2)
 * Backlight control
 * Set cursor visibility mode (block/underscore/blinking/no blinking)
 * Set display visibility mode (independent of display RAM contents)
+* Set cursor position (*see Limitations, below*)
+* Enable/disable processing of control chars at runtime
 
 ## Requirements
 
 P1/SPIN1:
 * spin-standard-library
-* 1 extra core/cog for the PASM PCF8573 driver (for I2C-connected types)
+* 1 extra core/cog for the PASM PCF8573 driver (or none if using the SPIN-based driver), for I2C-connected displays
 
 P2/SPIN2:
 * p2-spin-standard-library
@@ -24,7 +26,7 @@ P2/SPIN2:
 ## Compiler Compatibility
 
 * P1/SPIN1: OpenSpin (tested with 1.00.81), FlexSpin (tested with 6.0.0-beta)
-* ~~P2/SPIN2: FlexSpin (tested with 6.0.0-beta)~~ _(not implemented yet)_
+* P2/SPIN2: FlexSpin (tested with 6.0.0-beta)
 * ~~BST~~ (incompatible - no preprocessor)
 * ~~Propeller Tool~~ (incompatible - no preprocessor)
 * ~~PNut~~ (incompatible - no preprocessor)
@@ -32,7 +34,7 @@ P2/SPIN2:
 ## Limitations
 
 * Very early in development - may malfunction, or outright fail to build
-* May require lower bus speed than specified maximum in order to operate reliably
+* Cursor position currently hardcoded with 2x16 displays in mind
 
 ## TODO
 
