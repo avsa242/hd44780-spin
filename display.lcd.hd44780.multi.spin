@@ -5,12 +5,14 @@
     Description: Driver for HD44780 alphanumeric LCDs
     Copyright (c) 2021
     Started Sep 06, 2021
-    Updated Sep 09, 2021
+    Updated Sep 11, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
 
 CON
+
+    TABSTOPS    = 4
 
 ' I2C defaults
     DEF_SCL     = 28
@@ -23,10 +25,15 @@ CON
     RW          = 1 << 1                        ' read/write
     RS          = 1                             ' reg. select (data/cmd)
 
+' Character processing mode
+    LITERAL     = 0                             ' print chars as-is
+    TERM        = 1                             ' process control chars
+
 VAR
 
     byte _disp_ctrl                             ' disp. control state
     byte _disponoff
+    byte _charmode
 
 OBJ
 
@@ -60,11 +67,52 @@ PUB Stop{}
 PUB Defaults{}
 ' Set factory defaults
 
-PUB Char(ch)
+PUB Char(ch) | tmp
 ' Display single character
     _disp_ctrl |= RS                            ' RS high (data)
-    wr_nib(ch)                                  ' MS nibble first
-    wr_nib(ch << 4)                             ' LS nibble
+    if _charmode == LITERAL
+        wr_nib(ch)                              ' MS nibble first
+        wr_nib(ch << 4)                         ' LS nibble
+    elseif _charmode == TERM
+        case ch
+            HM:                                 ' -Home:-
+                wr_cmd(core#HOME)
+                time.msleep(2)                  ' wait for display (1.52ms)
+            BEL:                                ' -Bell (flash display):-
+                tmp := enablebacklight(-2) ^ 1  ' get current backlight state,
+                enablebacklight(tmp)            '   and set the inverse
+                time.msleep(50)                 ' short delay for visible blink
+                enablebacklight(tmp ^ 1)        ' revert to original state
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
+            BS, DEL:                            ' -Backspace/Delete:-
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
+                _disp_ctrl |= RS
+                wr_nib(" ")                     ' MS nibble first
+                wr_nib(" " << 4)                ' LS nibble
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
+            TB:                                 ' -Tab:-
+                repeat TABSTOPS
+                    wr_nib(" ")                  ' MS nibble first
+                    wr_nib(" " << 4)             ' LS nibble
+            other:                              ' -Printable character:-
+                wr_nib(ch)                      ' MS nibble first
+                wr_nib(ch << 4)                 ' LS nibble
+
+PUB CharMode(mode): curr_mode
+' Set character processing/display mode
+'   Valid values:
+'      *LITERAL (0):
+'           printable characters are displayed
+'           control characters are displayed
+'       TERM (1):
+'           printable characters are displayed
+'           control characters are processed
+'               (e.g., HM homes display, BS erases previous char, etc)
+    case mode
+        LITERAL, TERM:
+            _charmode := mode
+        other:
+            return _charmode
 
 PUB Clear{}
 ' Clear display contents, and set cursor position to 0, 0
@@ -108,12 +156,15 @@ PUB DisplayVisibility(mode): curr_mode
 
     wr_cmd(core#DISPONOFF | _disponoff)
 
-PUB EnableBacklight(s)
+PUB EnableBacklight(state)
 ' Enable backlight, if equipped
-    if s <> 0
-        _disp_ctrl |= BL                        ' set backlight bit
-    else
-        _disp_ctrl &= !BL
+    case state
+        0:
+            _disp_ctrl &= !BL
+        1:
+            _disp_ctrl |= BL                        ' set backlight bit
+        other:
+            return ((_disp_ctrl >> 3) & 1)
 
     _disp_ctrl |= RW                            ' set LCD I/O direction to READ
     wr_nib(%0000)                               '   and send a dummy nibble,

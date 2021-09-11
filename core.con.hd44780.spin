@@ -5,7 +5,7 @@
     Description: HD44780-specific low-level constants
     Copyright (c) 2021
     Started Sep 8, 2021
-    Updated Sep 8, 2021
+    Updated Sep 11, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -38,12 +38,13 @@ CON
         CRSNOBLINK  = CRSBLINK ^ DISPONOFF_MASK
 
     CRSDISPSHFT     = $10                       ' .
+    CRSDISPSHFT_MASK= $0C
         SC          = 3
         RL          = 2
         DISPSHIFT   = 1 << SC
-        CRSMOVE     = 0 << SC
+        CRSMOVE     = DISPSHIFT ^ CRSDISPSHFT_MASK
         SHIFTR      = 1 << RL
-        SHIFTL      = 0 << RL
+        SHIFTL      = SHIFTR ^ CRSDISPSHFT_MASK
 
     FUNCSET         = $20                       ' .
         DL          = 4
