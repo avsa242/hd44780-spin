@@ -5,7 +5,7 @@
     Description: Demo of the HD44780 LCD driver
     Copyright (c) 2021
     Started Sep 08, 2021
-    Updated Sep 09, 2021
+    Updated Oct 12, 2021
     See end of file for terms of use.
     --------------------------------------------
 }
