@@ -1,11 +1,11 @@
 {
     --------------------------------------------
-    Filename: display.lcd.hd44780.multi.spin2
+    Filename: display.lcd.hd44780.spin
     Author: Jesse Burt
-    Description: Driver for HD44780 alphanumeric LCDs (P2 version)
-    Copyright (c) 2021
-    Started Sep 11, 2021
-    Updated Oct 12, 2021
+    Description: Driver for HD44780 alphanumeric LCDs
+    Copyright (c) 2022
+    Started Sep 06, 2021
+    Updated May 14, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -15,6 +15,8 @@ CON
     TABSTOPS    = 4
 
 ' I2C defaults
+    DEF_SCL     = 28
+    DEF_SDA     = 29
     DEF_HZ      = 100_000
     DEF_ADDR    = %000
 
@@ -36,29 +38,34 @@ VAR
 
 OBJ
 
-    ioexp:  "io.expander.pcf8574.i2c"           ' 8-bit I/O expander driver
+    ioexp:  "io.expander.pcf8574"               ' 8-bit I/O expander driver
     core:   "core.con.hd44780"                  ' hw-specific low-level const's
+    time:   "time"                              ' basic timing functions
 
-PUB Null()
+PUB Null{}
 ' This is not a top-level object
 
-PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS=DEF_ADDR): status
+PUB Start{}: status
+' Start using "standard" Propeller I2C pins and 100kHz
+    return startx(DEF_SCL, DEF_SDA, DEF_HZ, DEF_ADDR)
+
+PUB Startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
 ' Start using custom IO pins and I2C bus frequency
-    if lookdown(SCL_PIN: 0..63) and lookdown(SDA_PIN: 0..63) and {
-}   I2C_HZ <= ioexp.I2C_MAX_FREQ                ' validate pins and bus freq
+    if lookdown(SCL_PIN: 0..31) and lookdown(SDA_PIN: 0..31) and {
+}   I2C_HZ =< ioexp#I2C_MAX_FREQ and lookdown(ADDR_BITS: %000..%111)
         if (status := ioexp.startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS))
-            waitus(core.T_POR)                  ' wait for device startup
+            time.usleep(core#T_POR)             ' wait for device startup
                 return
     ' if this point is reached, something above failed
     ' Re-check I/O pin assignments, bus speed, connections, power
     ' Lastly - make sure you have at least one free core/cog 
     return FALSE
 
-PUB Stop()
+PUB Stop{}
 
-    ioexp.stop()
+    ioexp.stop{}
 
-PUB Defaults()
+PUB Defaults{}
 ' Set factory defaults
 
 PUB Char(ch) | tmp
@@ -70,20 +77,20 @@ PUB Char(ch) | tmp
     elseif _charmode == TERM
         case ch
             HM:                                 ' -Home:-
-                wr_cmd(core.HOME)
-                waitms(2)                       ' wait for display (1.52ms)
+                wr_cmd(core#HOME)
+                time.msleep(2)                  ' wait for display (1.52ms)
             BEL:                                ' -Bell (flash display):-
                 tmp := enablebacklight(-2) ^ 1  ' get current backlight state,
                 enablebacklight(tmp)            '   and set the inverse
-                waitms(50)                      ' short delay for visible blink
+                time.msleep(50)                 ' short delay for visible blink
                 enablebacklight(tmp ^ 1)        ' revert to original state
-                wr_cmd(core.CRSDISPSHFT & !core.CRSMOVE & !core.SHIFTL)
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
             BS, DEL:                            ' -Backspace/Delete:-
-                wr_cmd(core.CRSDISPSHFT & !core.CRSMOVE & !core.SHIFTL)
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
                 _disp_ctrl |= RS
                 wr_nib(" ")                     ' MS nibble first
                 wr_nib(" " << 4)                ' LS nibble
-                wr_cmd(core.CRSDISPSHFT & !core.CRSMOVE & !core.SHIFTL)
+                wr_cmd(core#CRSDISPSHFT & !core#CRSMOVE & !core#SHIFTL)
             TB:                                 ' -Tab:-
                 repeat TABSTOPS
                     wr_nib(" ")                 ' MS nibble first
@@ -108,10 +115,10 @@ PUB CharMode(mode): curr_mode
         other:
             return _charmode
 
-PUB Clear()
+PUB Clear{}
 ' Clear display contents, and set cursor position to 0, 0
-    wr_cmd(core.CLEAR)
-    waitms(5)
+    wr_cmd(core#CLEAR)
+    time.msleep(5)
 
 PUB CursorMode(mode): curr_mode
 ' Set cursor mode
@@ -122,19 +129,19 @@ PUB CursorMode(mode): curr_mode
 '   Any other value returns the current setting
     case mode
         0:
-            _disponoff := (_disponoff & core.CRSOFF & core.CRSNOBLINK)
+            _disponoff := (_disponoff & core#CRSOFF & core#CRSNOBLINK)
         1:
-            _disponoff &= core.CRSOFF
-            _disponoff |= core.CRSBLINK
+            _disponoff &= core#CRSOFF
+            _disponoff |= core#CRSBLINK
         2:
-            _disponoff |= core.CRSON
-            _disponoff &= core.CRSNOBLINK
+            _disponoff |= core#CRSON
+            _disponoff &= core#CRSNOBLINK
         3:
-            _disponoff |= core.CRSON | core.CRSBLINK
+            _disponoff |= core#CRSON | core#CRSBLINK
         other:
             return (_disponoff & %11)           ' ret both C and B bits
 
-    wr_cmd(core.DISPONOFF | _disponoff)
+    wr_cmd(core#DISPONOFF | _disponoff)
 
 PUB DisplayVisibility(mode): curr_mode
 ' Set display visibility
@@ -142,13 +149,13 @@ PUB DisplayVisibility(mode): curr_mode
 '   ON (1): display on
     case mode
         0:
-            _disponoff &= core.DISPOFF
+            _disponoff &= core#DISPOFF
         1:
-            _disponoff |= core.DISPON
+            _disponoff |= core#DISPON
         other:
-            return ((_disponoff >> core.DONOFF) & 1)
+            return ((_disponoff >> core#DONOFF) & 1)
 
-    wr_cmd(core.DISPONOFF | _disponoff)
+    wr_cmd(core#DISPONOFF | _disponoff)
 
 PUB EnableBacklight(state)
 ' Enable backlight, if equipped
@@ -167,31 +174,31 @@ PUB EnableBacklight(state)
 
 PUB Position(x, y)
 ' Set cursor position
-    wr_cmd(core.DDRAM_ADDR | ((y * $40) + x))
+    wr_cmd(core#DDRAM_ADDR | ((y * $40) + x))
 
-PUB Reset()
+PUB Reset{}
 ' Reset display
 '   XXX ref. HD44780 datasheet p.45
-    waitms(15)
-    wr_nib(core.FUNCSET | core.IF_8BIT)
-    waitms(5)
-    wr_nib(core.FUNCSET | core.IF_8BIT)
-    waitus(100)
-    wr_nib(core.FUNCSET | core.IF_8BIT)
+    time.msleep(15)
+    wr_nib(core#FUNCSET | core#IF_8BIT)
+    time.msleep(5)
+    wr_nib(core#FUNCSET | core#IF_8BIT)
+    time.usleep(100)
+    wr_nib(core#FUNCSET | core#IF_8BIT)
 
-    wr_nib(core.FUNCSET | core.IF_4BIT)
+    wr_nib(core#FUNCSET | core#IF_4BIT)
 
-    wr_cmd(core.FUNCSET | core.IF_4BIT | core.LINES2 | core.FNT8PX)
-    wr_cmd(core.DISPONOFF | core.DISPON | core.CRSOFF | core.CRSNOBLINK)
-    wr_cmd(core.CLEAR)
-    wr_cmd(core.ENTRMD_SET | core.INCR)
+    wr_cmd(core#FUNCSET | core#IF_4BIT | core#LINES2 | core#FNT8PX)
+    wr_cmd(core#DISPONOFF | core#DISPON | core#CRSOFF | core#CRSNOBLINK)
+    wr_cmd(core#CLEAR)
+    wr_cmd(core#ENTRMD_SET | core#INCR)
 
 PRI Wr_Cmd(cmdb)
 ' Write 8-bit command, 4 bits at a time
     _disp_ctrl &= !RS                           ' RS low (command)
     wr_nib(cmdb)                                ' MS nibble first
     wr_nib(cmdb << 4)                           ' LS nibble
-    waitus(1000)                                ' inter-cmd delay
+    time.usleep(1000)
 
 PRI Wr_Nib(nib)
 ' Write nibble to display and update display control bits
@@ -200,7 +207,7 @@ PRI Wr_Nib(nib)
     ioexp.wr_byte( (nib & $f0) | _disp_ctrl)    ' clock low
 
 ' Pull in standard terminal methods (Bin(), Dec(), Hex(), Str(), etc)
-#include "lib.terminal.spin2"
+#include "lib.terminal.spin"
 
 DAT
 {
