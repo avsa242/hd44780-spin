@@ -19,7 +19,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the HD44780
 
 P1/SPIN1:
 * spin-standard-library
-* For I2C-connected displays: 1 extra core/cog for the PASM PCF8573 driver (none if using the bytecode-based driver)
+* For I2C-connected displays: 1 extra core/cog for the PASM PCF8574 driver (none if using the bytecode-based driver)
 
 P2/SPIN2:
 * p2-spin-standard-library
