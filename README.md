@@ -40,5 +40,4 @@ P2/SPIN2:
 ## Limitations
 
 * Very early in development - may malfunction, or outright fail to build
-* No Newline() support
 
