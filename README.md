@@ -11,7 +11,7 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the HD44780
 * Backlight control
 * Set cursor visibility mode (block/underscore/blinking/no blinking)
 * Set display visibility mode (independent of display RAM contents)
-* Set cursor position (*see Limitations, below*)
+* Set cursor position
 * Enable/disable processing of control chars at runtime
 * Support for alternate I2C addresses
 
@@ -40,6 +40,5 @@ P2/SPIN2:
 ## Limitations
 
 * Very early in development - may malfunction, or outright fail to build
-* Cursor position currently hardcoded with 2x16 displays in mind
 * No Newline() support
 

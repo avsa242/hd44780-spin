@@ -3,9 +3,9 @@
     Filename: display.lcd.hd44780.spin
     Author: Jesse Burt
     Description: Driver for HD44780 alphanumeric LCDs
-    Copyright (c) 2022
+    Copyright (c) 2023
     Started Sep 06, 2021
-    Updated Nov 5, 2022
+    Updated Jan 8, 2023
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -82,7 +82,7 @@ PUB char_mode(mode)
     _charmode := (LITERAL #> mode <# TERM)
 
 PUB clear{}
-' Clear display contents, and set cursor pos_xy to 0, 0
+' Clear display contents, and set cursor position to 0, 0
     wr_cmd(core#CLEAR)
     time.msleep(5)
 
@@ -135,7 +135,11 @@ PUB backlight_ena(state)
 PUB position = pos_xy
 PUB pos_xy(x, y)
 ' Set cursor position
-    wr_cmd(core#DDRAM_ADDR | ((y * $40) + x))
+    case y
+        0, 1:
+            wr_cmd(core#DDRAM_ADDR | ((y * $40) + x))
+        2, 3:
+            wr_cmd(core#DDRAM_ADDR | (($14 + (y * $40)) + x))
 
 PUB tx = putchar
 PUB char = putchar
