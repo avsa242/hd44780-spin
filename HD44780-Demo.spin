@@ -4,48 +4,77 @@
     Description:    Demo of the HD44780 LCD driver
     Author:         Jesse Burt
     Started:        Sep 8, 2021
-    Updated:        Jan 22, 2024
+    Updated:        Aug 22, 2024
     Copyright (c) 2024 - See end of file for terms of use.
 ---------------------------------------------------------------------------------------------------
 }
 
 CON
 
-    _clkmode    = cfg#_clkmode
-    _xinfreq    = cfg#_xinfreq
+    _clkmode    = cfg._clkmode
+    _xinfreq    = cfg._xinfreq
 
-' -- User-defined constants
-    SCL_PIN     = 28
-    SDA_PIN     = 29
-    I2C_FREQ    = 100_000                       ' max is 100_000
-    ADDR_BITS   = %111                          ' %000 (def) .. %111
-' --
 
 OBJ
 
-    cfg :   "boardcfg.flip"
+    cfg:    "boardcfg.flip"
+    time:   "time"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
-    disp:   "display.lcd-alpha.hd44780"
+    disp:   "display.lcd-alpha.hd44780" | SCL=28, SDA=29, I2C_FREQ=100_000, I2C_ADDR=%000
 
-PUB main{}
+
+PUB main()
+
+    setup()
+
+    disp.clear()
+    disp.str(@"Testing 1 2 3")
+    time.sleep(2)
+    disp.clear()
+
+    demo_backlight()
+    demo_num()
+
+
+PUB demo_backlight()
+
+    disp.str(@"Backlight")
+    repeat 10
+        disp.backlight_ena(0)
+        time.msleep(100)
+        disp.backlight_ena(1)
+        time.msleep(100)
+
+
+PUB demo_num() | i
+
+    repeat i from 255 to 0
+        disp.pos_xy(0, 0)
+        disp.printf3(@"%03.3d %02.2x %08.8b", i, i, i)
+        time.msleep(50)
+    disp.clear()
+    repeat i from 0 to -255
+        disp.pos_xy(0, 0)
+        disp.printf3(@"%4.4d %02.2x %08.8b", i, i.byte[0], i.byte[0])
+        time.msleep(50)
+
+
+PUB setup()
 
     ser.start()
     time.msleep(30)
-    ser.clear{}
-    ser.strln(string("Serial terminal started"))
+    ser.clear()
+    ser.strln(@"Serial terminal started")
 
-    if disp.startx(SCL_PIN, SDA_PIN, I2C_FREQ, ADDR_BITS)
-        ser.strln(string("HD44780 driver started (I2C)"))
+    if ( disp.start() )
+        ser.strln(@"HD44780 driver started (I2C)")
     else
-        ser.strln(string("HD44780 driver failed to start - halting"))
+        ser.strln(@"HD44780 driver failed to start - halting")
         repeat
 
-    disp.reset{}
+    disp.reset()
     disp.backlight_ena(1)
 
-    demo{}
-
-#include "alphanum-disp-demo.common.spinh"
 
 DAT
 {
