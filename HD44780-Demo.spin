@@ -1,39 +1,39 @@
 {
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
     Filename:       HD44780-Demo.spin
     Description:    Demo of the HD44780 LCD driver
     Author:         Jesse Burt
     Started:        Sep 8, 2021
-    Updated:        Aug 22, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
----------------------------------------------------------------------------------------------------
+    Updated:        May 13, 2026
+    Copyright (c) 2026 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
 
-    _clkmode    = cfg._clkmode
-    _xinfreq    = cfg._xinfreq
+    _clkmode    = xtal1+pll16x
+    _xinfreq    = 5_000_000
 
 
 OBJ
 
-    cfg:    "boardcfg.flip"
-    time:   "time"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=115_200
     disp:   "display.lcd-alpha.hd44780" | SCL=28, SDA=29, I2C_FREQ=100_000, I2C_ADDR=%000
+    time:   "time"
 
 
 PUB main()
 
     setup()
 
-    disp.clear()
-    disp.str(@"Testing 1 2 3")
-    time.sleep(2)
-    disp.clear()
+    repeat
+        disp.clear()
+        disp.str(@"Testing 1 2 3")
+        time.sleep(2)
+        disp.clear()
 
-    demo_backlight()
-    demo_num()
+        demo_backlight()
+        demo_num()
 
 
 PUB demo_backlight()
@@ -50,12 +50,12 @@ PUB demo_num() | i
 
     repeat i from 255 to 0
         disp.pos_xy(0, 0)
-        disp.printf3(@"%03.3d %02.2x %08.8b", i, i, i)
+        disp.printf(@"%03.3d %02.2x %08.8b", i, i, i)
         time.msleep(50)
     disp.clear()
     repeat i from 0 to -255
         disp.pos_xy(0, 0)
-        disp.printf3(@"%4.4d %02.2x %08.8b", i, i.byte[0], i.byte[0])
+        disp.printf(@"%4.4d %02.2x %08.8b", i, i.byte[0], i.byte[0])
         time.msleep(50)
 
 
@@ -78,7 +78,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2026 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

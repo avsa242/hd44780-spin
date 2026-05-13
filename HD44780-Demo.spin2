@@ -1,23 +1,22 @@
 {
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------
     Filename:       HD44780-Demo.spin2
     Description:    Demo of the HD44780 LCD driver
     Author:         Jesse Burt
     Started:        Sep 8, 2021
-    Updated:        Aug 22, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
----------------------------------------------------------------------------------------------------
+    Updated:        May 13, 2026
+    Copyright (c) 2026 - See end of file for terms of use.
+----------------------------------------------------------------------------------------------------
 }
 
 CON
 
-    _clkfreq    = cfg._clkfreq_def
-    _xtlfreq    = cfg._xtlfreq
+    _clkfreq    = 180_000_000
+    _xtlfreq    = 20_000_000
 
 
 OBJ
 
-    cfg:    "boardcfg.p2eval"
     ser:    "com.serial.terminal.ansi" | SER_BAUD=2_000_000
     disp:   "display.lcd-alpha.hd44780" | SCL=28, SDA=29, I2C_FREQ=100_000, I2C_ADDR=%000
 
@@ -26,13 +25,14 @@ PUB main()
 
     setup()
 
-    disp.clear()
-    disp.str(@"Testing 1 2 3")
-    waitms(2_000)
-    disp.clear()
+    repeat
+        disp.clear()
+        disp.str(@"Testing 1 2 3")
+        waitms(2_000)
+        disp.clear()
 
-    demo_backlight()
-    demo_num()
+        demo_backlight()
+        demo_num()
 
 
 PUB demo_backlight()
@@ -76,7 +76,7 @@ PUB setup()
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2026 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,

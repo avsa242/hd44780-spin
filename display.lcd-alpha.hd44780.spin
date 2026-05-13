@@ -17,14 +17,8 @@ CON
     I2C_FREQ    = 100_000
     I2C_ADDR    = %000
 
+    TABSTOPS    = 4                             ' # spaces emitted when a TAB char is sent
 
-    TABSTOPS    = 4
-
-' I2C defaults
-    DEF_SCL     = 28
-    DEF_SDA     = 29
-    DEF_HZ      = 100_000
-    DEF_ADDR    = %000
 
 ' HD44780 control signals
     BL          = 1 << 3                        ' backlight
@@ -62,7 +56,7 @@ PUB null()
 
 PUB start(): status
 ' Start using default I/O settings
-    return startx(DEF_SCL, DEF_SDA, DEF_HZ, DEF_ADDR)
+    return startx(SCL, SDA, I2C_FREQ, I2C_ADDR)
 
 
 PUB startx(SCL_PIN, SDA_PIN, I2C_HZ, ADDR_BITS): status
@@ -97,7 +91,7 @@ PUB defaults()
 PUB backlight_ena(state)
 ' Enable backlight, if equipped
     if ( state )
-        _disp_ctrl |= BL                    ' set backlight bit
+        _disp_ctrl |= BL                        ' set backlight bit
     else
         _disp_ctrl &= !BL
 
@@ -288,7 +282,7 @@ PRI wr_nib(nib)
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2026 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
